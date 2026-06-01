@@ -1,7 +1,6 @@
 package kite
 
 import (
-	"context"
 	"fmt"
 	"path/filepath"
 	"sync"
@@ -52,7 +51,3 @@ func New(cfg provider.Config) (*Kite, error) {
 // Name returns the provider's registry key.
 func (k *Kite) Name() string { return Name }
 
-// TEMPORARY stubs so *Kite satisfies provider.Provider until alerts.go is added
-// in the next task. These two methods will be DELETED in Task 5.
-func (k *Kite) ListAlerts(ctx context.Context) ([]provider.Alert, error)       { return nil, nil }
-func (k *Kite) CreateAlert(ctx context.Context, spec provider.AlertSpec) error { return nil }
