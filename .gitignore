@@ -1,0 +1,16 @@
+# sessions / tokens — never commit
+data/*/session.json
+
+# runtime run reports
+runs/
+
+# generated dedup log
+data/alerts/mapping.csv
+
+# go build artifacts
+/bin/
+*.test
+*.out
+
+# env
+.env
