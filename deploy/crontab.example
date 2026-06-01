@@ -1,0 +1,4 @@
+# be-stonks alerts sync — 08:30 and 16:00 IST daily.
+# Ensure the machine's timezone is IST, or adjust these hours.
+30 8 * * * curl -fsS -X POST http://localhost:8000/alerts/sync >> /opt/be-stonks/runs/cron.log 2>&1
+0 16 * * * curl -fsS -X POST http://localhost:8000/alerts/sync >> /opt/be-stonks/runs/cron.log 2>&1
