@@ -21,7 +21,7 @@ func init() {
 
 // Kite implements provider.Provider against Zerodha Kite Connect.
 // gokiteconnect is used for the login/session flow; the alerts API is called
-// directly over HTTP (see alerts.go, added in a later task).
+// directly over HTTP (see alerts.go).
 type Kite struct {
 	client      *kc.Client
 	apiKey      string

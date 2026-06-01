@@ -47,7 +47,7 @@ Builder maps one recommendation row → 3 `provider.AlertSpec`:
 
 Values trimmed of trailing zeros (`320.5`, not `320.50`).
 
-The Kite provider translates each `AlertSpec` → gokiteconnect `AlertParams` (`lhs_exchange=NSE`, `lhs_tradingsymbol=<symbol>`, `lhs_attribute=LastPrice`, `operator=>=`, `rhs_type=constant`, `rhs_constant=<value>`, `type=simple`).
+The Kite provider translates each `AlertSpec` → Kite alert params (`lhs_exchange=NSE`, `lhs_tradingsymbol=<symbol>`, `lhs_attribute=LastTradedPrice`, `operator=>=`, `rhs_type=constant`, `rhs_constant=<value>`, `type=simple`).
 
 ## 4. Dedup / mapping log
 

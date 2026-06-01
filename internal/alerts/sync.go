@@ -71,7 +71,9 @@ func (s *Syncer) Sync(ctx context.Context) (*Report, int) {
 	}
 	loggedNames := make(map[string]bool, len(logged))
 	for _, e := range logged {
-		loggedNames[e.AlertName] = true
+		if e.Provider == s.provider.Name() {
+			loggedNames[e.AlertName] = true
+		}
 	}
 	for _, a := range existing {
 		if loggedNames[a.Name] {
@@ -93,7 +95,7 @@ func (s *Syncer) Sync(ctx context.Context) (*Report, int) {
 	// 4. Read desired recommendations.
 	recs, skippedRows, err := recommendation.Load(s.recommendationPath)
 	if err != nil {
-		rep.Status = "list_failed"
+		rep.Status = "input_error"
 		rep.Errors = append(rep.Errors, "read recommendations: "+err.Error())
 		return rep, 500
 	}

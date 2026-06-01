@@ -20,7 +20,7 @@ type Report struct {
 	StartedAt             string       `json:"started_at"`
 	FinishedAt            string       `json:"finished_at"`
 	Provider              string       `json:"provider"`
-	Status                string       `json:"status"` // ok | no_session | list_failed | partial
+	Status                string       `json:"status"` // ok | no_session | list_failed | input_error | partial
 	SessionReady          bool         `json:"session_ready"`
 	RecommendationsRead   int          `json:"recommendations_read"`
 	AlertsDesired         int          `json:"alerts_desired"`

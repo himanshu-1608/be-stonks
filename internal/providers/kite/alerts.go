@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+	"time"
 
 	"be-stonks/internal/provider"
 )
@@ -61,7 +62,12 @@ func (k *Kite) ListAlerts(ctx context.Context) ([]provider.Alert, error) {
 	return alerts, nil
 }
 
-// CreateAlert creates a single simple LTP alert on Kite.
+// createBackoff is how long to wait before the single retry after an HTTP 429.
+const createBackoff = time.Second
+
+// CreateAlert creates a single simple LTP alert on Kite. On HTTP 429 it retries
+// once after a short backoff (per the rate-limit rules in context.md).
+//
 // Param names verified against gokiteconnect v4.4.0 alerts.go CreateAlert:
 //   - lhs_exchange, lhs_tradingsymbol, lhs_attribute, operator, rhs_type, rhs_constant
 //
@@ -76,23 +82,42 @@ func (k *Kite) CreateAlert(ctx context.Context, spec provider.AlertSpec) error {
 	form.Set("operator", string(spec.Operator))
 	form.Set("rhs_type", "constant")
 	form.Set("rhs_constant", strconv.FormatFloat(spec.Value, 'f', -1, 64))
+	encoded := form.Encode()
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, kiteAPIBase+"/alerts", strings.NewReader(form.Encode()))
+	attempt := func() (int, string, error) {
+		req, err := http.NewRequestWithContext(ctx, http.MethodPost, kiteAPIBase+"/alerts", strings.NewReader(encoded))
+		if err != nil {
+			return 0, "", err
+		}
+		req.Header.Set("X-Kite-Version", "3")
+		req.Header.Set("Authorization", k.authHeader())
+		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+		resp, err := http.DefaultClient.Do(req)
+		if err != nil {
+			return 0, "", err
+		}
+		defer resp.Body.Close()
+		body, _ := io.ReadAll(resp.Body)
+		return resp.StatusCode, strings.TrimSpace(string(body)), nil
+	}
+
+	statusCode, body, err := attempt()
 	if err != nil {
 		return err
 	}
-	req.Header.Set("X-Kite-Version", "3")
-	req.Header.Set("Authorization", k.authHeader())
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return err
+	if statusCode == http.StatusTooManyRequests {
+		select {
+		case <-time.After(createBackoff):
+		case <-ctx.Done():
+			return ctx.Err()
+		}
+		if statusCode, body, err = attempt(); err != nil {
+			return err
+		}
 	}
-	defer resp.Body.Close()
-	body, _ := io.ReadAll(resp.Body)
-	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("kite create alert %q: %s: %s", spec.Name, resp.Status, strings.TrimSpace(string(body)))
+	if statusCode != http.StatusOK {
+		return fmt.Errorf("kite create alert %q: %d: %s", spec.Name, statusCode, body)
 	}
 	return nil
 }
