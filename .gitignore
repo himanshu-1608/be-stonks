@@ -14,3 +14,6 @@ data/alerts/mapping.csv
 
 # env
 .env
+
+# daily input (personal data) — keep out of git; sample is tracked separately
+data/alerts/recommendation.csv
